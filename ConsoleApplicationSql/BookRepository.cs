@@ -77,15 +77,8 @@ namespace ConsoleApplicationSql
                 }
 
                 if (books[books.Length - 1].ISBN == book.ISBN) continue;
-
-                // initialize a new array with new length and transfer the old one to the new one.
-                Book[] newArrBooks = new Book[books.Length + 1];
-                for (int j = 0; j < books.Length; j++)
-                {
-                    newArrBooks[j] = books[j];
-                }
-                newArrBooks[books.Length] = book;
-                books = newArrBooks;
+                Array.Resize(ref books, books.Length + 1);
+                books[books.Length - 1] = book;
             }
 
             connection.Close();
