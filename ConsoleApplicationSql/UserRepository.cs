@@ -27,6 +27,7 @@ namespace ConsoleApplicationSql
         }
         public User SearchUser(int membershipId)
         {
+            User user = new User();
             SQLiteConnection connection;
             connection = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
             connection.Open();
@@ -35,12 +36,11 @@ namespace ConsoleApplicationSql
             SQLiteDataReader reader = command.ExecuteReader();
             while (reader.Read())
             {
-                User user = new User();
                 user.MembershipId = reader.GetInt32(0);
                 user.Name = reader.GetString(1);
-                return user;
             }
-            return new User();
+            connection.Close();
+            return user;
         }
         public User[] SearchUsers()
         {
@@ -68,6 +68,8 @@ namespace ConsoleApplicationSql
                 Array.Resize(ref users, users.Length + 1);
                 users[users.Length - 1] = user;
             }
+
+            connection.Close();
             return users.ToArray();
         }
     }

@@ -27,7 +27,7 @@ namespace ConsoleApplicationSql
             User[] users = userRepository.SearchUsers();
             for (int i = 0; i < users.Length; i++)
             {
-                if (users[i] == null) break;
+                Console.WriteLine("---------------------------------");
                 Console.WriteLine("Name: " + users[i].Name);
                 Console.WriteLine("Membership ID: " + users[i].MembershipId);
                 Console.WriteLine();

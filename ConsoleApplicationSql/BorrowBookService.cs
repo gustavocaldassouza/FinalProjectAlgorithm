@@ -5,36 +5,18 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplicationSql
 {
-    public class BorrowService
+    public class BorrowBookService
     {
-        UserService userService;
-        BookService bookService;
-        BorrowedBook[] borrowedBooks = new BorrowedBook[2];
-        public BorrowService(UserService userService, BookService bookService)
+        private BorrowBookRepository borrowBookRepository;
+        private BookRepository bookRepository;
+        private UserService userService;
+        private BookService bookService;
+        public BorrowBookService(UserService userService, BookService bookService)
         {
             this.userService = userService;
             this.bookService = bookService;
-        }
-        void AddBorrowedBook(Book book, User user, int quantity)
-        {
-            BorrowedBook borrowedBook = new BorrowedBook(book, user, quantity);
-            for (int i = 0; i < borrowedBooks.Length; i++)
-            {
-                if (borrowedBooks[i] == null)
-                {
-                    borrowedBooks[i] = borrowedBook;
-                    return;
-                }
-            }
-
-            // initialize a new array with new length and transfer the old one to the new one.
-            BorrowedBook[] newArrBooks = new BorrowedBook[borrowedBooks.Length + 5];
-            for (int i = 0; i < borrowedBooks.Length; i++)
-            {
-                newArrBooks[i] = borrowedBooks[i];
-            }
-            newArrBooks[borrowedBooks.Length] = borrowedBook;
-            borrowedBooks = newArrBooks;
+            borrowBookRepository = new BorrowBookRepository("myDatabase.sqlite");
+            bookRepository = new BookRepository("myDatabase.sqlite");
         }
         public void BorrowBook(string ISBN, int membershipId, int quantity = 1)
         {
@@ -44,9 +26,9 @@ namespace ConsoleApplicationSql
                 Book book = bookService.SearchBook(ISBN);
                 if (book.Quantity > 0)
                 {
-                    book.Quantity--;
+                    bookRepository.RemoveQuantity(book, quantity);
+                    borrowBookRepository.AddBorrowedBook(book, user, quantity);
                     Console.WriteLine("Book borrowed!");
-                    AddBorrowedBook(book, user, quantity);
                     return;
                 }
                 else
@@ -63,15 +45,17 @@ namespace ConsoleApplicationSql
             if (user.MembershipId == membershipId)
             {
                 Book book = bookService.SearchBook(ISBN);
-                // if Book exists
                 if (book.ISBN == ISBN && book.Quantity > 0)
                 {
-                    book.Quantity++;
+                    int quantity = borrowBookRepository.FetchQuantityBorrowed(book);
+                    borrowBookRepository.ReturnBook(book, user);
+                    bookRepository.AddQuantity(book, quantity);
+
                     Console.WriteLine("Book returned!");
                     Console.WriteLine();
+                    BorrowBook[] borrowedBooks = borrowBookRepository.ListBorrowedBooks();
                     for (int i = 0; i < borrowedBooks.Length; i++)
                     {
-                        if (borrowedBooks[i] == null) break;
                         if (borrowedBooks[i].book?.ISBN == ISBN && borrowedBooks[i].user?.MembershipId == membershipId)
                         {
                             if (borrowedBooks[i].dueDate < DateTime.Now)
@@ -79,8 +63,6 @@ namespace ConsoleApplicationSql
                                 Console.WriteLine("Book is overdue!");
                                 Console.WriteLine();
                             }
-                            borrowedBooks[i] = new BorrowedBook();
-                            return;
                         }
                     }
                     return;
@@ -92,20 +74,19 @@ namespace ConsoleApplicationSql
         }
         public void ListBorrowedBooks()
         {
-            bool found = false;
+            BorrowBook[] borrowedBooks = borrowBookRepository.ListBorrowedBooks();
             for (int i = 0; i < borrowedBooks.Length; i++)
             {
-                if (borrowedBooks[i] == null) break;
-                if (borrowedBooks[i].book == null) continue;
-                found = true;
+                Console.WriteLine("---------------------------------");
                 Console.WriteLine("Title: " + borrowedBooks[i].book?.Title);
                 Console.WriteLine("Author: " + borrowedBooks[i].book?.Author);
                 Console.WriteLine("ISBN: " + borrowedBooks[i].book?.ISBN);
-                Console.WriteLine("Quantity: " + borrowedBooks[i].book?.Quantity);
+                Console.WriteLine("Quantity of copies: " + borrowedBooks[i].book?.Quantity);
                 Console.WriteLine();
                 Console.WriteLine("User: " + borrowedBooks[i].user?.Name);
                 Console.WriteLine("Membership ID: " + borrowedBooks[i].user?.MembershipId);
                 Console.WriteLine("Due Date: " + borrowedBooks[i].dueDate);
+                Console.WriteLine("Quantity borrowed: " + borrowedBooks[i].quantity);
                 Console.WriteLine();
                 if (borrowedBooks[i].dueDate < DateTime.Now)
                 {
@@ -115,7 +96,7 @@ namespace ConsoleApplicationSql
                     Console.ResetColor();
                 }
             }
-            if (!found)
+            if (!borrowedBooks.Any())
             {
                 Console.WriteLine("No borrowed books found!");
                 Console.WriteLine();

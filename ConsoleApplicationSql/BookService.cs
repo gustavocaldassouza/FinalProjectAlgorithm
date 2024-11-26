@@ -27,7 +27,7 @@ namespace ConsoleApplicationSql
             Book book = bookRepository.SearchBook(ISBN);
             if (book.ISBN == ISBN)
             {
-                Console.WriteLine("Book found!");
+                Console.WriteLine("---------------------------------");
                 Console.WriteLine("Title: " + book.Title);
                 Console.WriteLine("Author: " + book.Author);
                 Console.WriteLine("ISBN: " + book.ISBN);
@@ -46,7 +46,7 @@ namespace ConsoleApplicationSql
             Book[] books = bookRepository.SearchBooks();
             for (int i = 0; i < books.Length; i++)
             {
-                if (books[i] == null) break;
+                Console.WriteLine("---------------------------------");
                 Console.WriteLine("Title: " + books[i].Title);
                 Console.WriteLine("Author: " + books[i].Author);
                 Console.WriteLine("ISBN: " + books[i].ISBN);

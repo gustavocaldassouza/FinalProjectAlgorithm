@@ -7,10 +7,10 @@ namespace Algorithm
   {
     BookService bookService = new BookService();
     UserService userService = new UserService();
-    BorrowService? borrowService;
+    BorrowBookService? borrowBookService;
     public void Exec()
     {
-      borrowService = new BorrowService(userService, bookService);
+      borrowBookService = new BorrowBookService(userService, bookService);
       while (true)
       {
         int choice = DisplayMenu();
@@ -53,8 +53,8 @@ namespace Algorithm
         SQLiteCommand createBookTableCmd = new SQLiteCommand(createBookTableQuery, connection);
         createBookTableCmd.ExecuteNonQuery();
 
-        string createBorrowedBooksTableQuery = @"
-                CREATE TABLE IF NOT EXISTS BorrowedBooks (
+        string createBorrowedBookTableQuery = @"
+                CREATE TABLE IF NOT EXISTS BorrowedBook (
                     BorrowedBookId INTEGER PRIMARY KEY AUTOINCREMENT,
                     MembershipId INTEGER NOT NULL,
                     ISBN TEXT NOT NULL,
@@ -63,8 +63,8 @@ namespace Algorithm
                     FOREIGN KEY (MembershipId) REFERENCES User(MembershipId),
                     FOREIGN KEY (ISBN) REFERENCES Book(ISBN)
                 );";
-        SQLiteCommand createBorrowedBooksTableCmd = new SQLiteCommand(createBorrowedBooksTableQuery, connection);
-        createBorrowedBooksTableCmd.ExecuteNonQuery();
+        SQLiteCommand createBorrowedBookTableCmd = new SQLiteCommand(createBorrowedBookTableQuery, connection);
+        createBorrowedBookTableCmd.ExecuteNonQuery();
 
         InsertIfNotExists(connection, "User", "MembershipId", 1,
             "INSERT INTO User (MembershipId, Name) VALUES (@MembershipId, @Name);",
@@ -82,12 +82,12 @@ namespace Algorithm
             ("@ISBN", "978-1491950296"), ("@Title", "Designing Data-Intensive Applications"),
             ("@Author", "Martin Kleppmann"), ("@Quantity", 5));
 
-        InsertIfNotExists(connection, "BorrowedBooks", "BorrowedBookId", 1,
-            "INSERT INTO BorrowedBooks (MembershipId, ISBN, DueDate, Quantity) VALUES (@MembershipId, @ISBN, @DueDate, @Quantity);",
+        InsertIfNotExists(connection, "BorrowedBook", "BorrowedBookId", 1,
+            "INSERT INTO BorrowedBook (MembershipId, ISBN, DueDate, Quantity) VALUES (@MembershipId, @ISBN, @DueDate, @Quantity);",
             ("@MembershipId", 1), ("@ISBN", "978-0132350884"),
             ("@DueDate", DateTime.Now.AddDays(14).ToString("yyyy-MM-dd")), ("@Quantity", 1));
-        InsertIfNotExists(connection, "BorrowedBooks", "BorrowedBookId", 2,
-            "INSERT INTO BorrowedBooks (MembershipId, ISBN, DueDate, Quantity) VALUES (@MembershipId, @ISBN, @DueDate, @Quantity);",
+        InsertIfNotExists(connection, "BorrowedBook", "BorrowedBookId", 2,
+            "INSERT INTO BorrowedBook (MembershipId, ISBN, DueDate, Quantity) VALUES (@MembershipId, @ISBN, @DueDate, @Quantity);",
             ("@MembershipId", 2), ("@ISBN", "978-1491950296"),
             ("@DueDate", DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")), ("@Quantity", 2));
       }
@@ -182,17 +182,17 @@ namespace Algorithm
             Console.WriteLine();
             return;
           }
-          borrowService!.BorrowBook(isbn, membershipId, quantity);
+          borrowBookService!.BorrowBook(isbn, membershipId, quantity);
           break;
         case 6:
           Console.WriteLine("Enter Membership ID: ");
           membershipId = int.Parse(Console.ReadLine() ?? "0");
           Console.WriteLine("Enter ISBN: ");
           isbn = Console.ReadLine() ?? "0";
-          borrowService!.ReturnBook(isbn, membershipId);
+          borrowBookService!.ReturnBook(isbn, membershipId);
           break;
         case 7:
-          borrowService!.ListBorrowedBooks();
+          borrowBookService!.ListBorrowedBooks();
           break;
         case 8:
           userService.ListUsers();

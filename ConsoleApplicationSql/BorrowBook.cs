@@ -5,14 +5,15 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplicationSql
 {
-    public class BorrowedBook
+    public class BorrowBook
     {
+        public int Id;
         public Book? book;
         public User? user;
         public int quantity;
         public DateTime dueDate;
 
-        public BorrowedBook(Book book, User user, int quantity)
+        public BorrowBook(Book book, User user, int quantity)
         {
             this.book = book;
             this.user = user;
@@ -22,7 +23,16 @@ namespace ConsoleApplicationSql
             this.dueDate = DateTime.Now.AddDays(days);
         }
 
-        public BorrowedBook()
+        public BorrowBook(int Id, Book book, User user, int quantity, DateTime dueDate)
+        {
+            this.Id = Id;
+            this.book = book;
+            this.user = user;
+            this.quantity = quantity;
+            this.dueDate = dueDate;
+        }
+
+        public BorrowBook()
         {
 
         }

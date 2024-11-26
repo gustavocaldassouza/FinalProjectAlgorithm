@@ -13,6 +13,30 @@ namespace ConsoleApplicationSql
         {
             _dbPath = dbPath;
         }
+        public void RemoveQuantity(Book book, int quantity)
+        {
+            SQLiteConnection connection;
+            connection = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
+            connection.Open();
+            string updateQuery = "UPDATE Book SET Quantity = @Quantity WHERE ISBN = @ISBN;";
+            SQLiteCommand updateCmd = new SQLiteCommand(updateQuery, connection);
+            updateCmd.Parameters.AddWithValue("@Quantity", book.Quantity - quantity);
+            updateCmd.Parameters.AddWithValue("@ISBN", book.ISBN);
+            updateCmd.ExecuteNonQuery();
+            connection.Close();
+        }
+        public void AddQuantity(Book book, int quantity)
+        {
+            SQLiteConnection connection;
+            connection = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
+            connection.Open();
+            string updateQuery = "UPDATE Book SET Quantity = @Quantity WHERE ISBN = @ISBN;";
+            SQLiteCommand updateCmd = new SQLiteCommand(updateQuery, connection);
+            updateCmd.Parameters.AddWithValue("@Quantity", book.Quantity + quantity);
+            updateCmd.Parameters.AddWithValue("@ISBN", book.ISBN);
+            updateCmd.ExecuteNonQuery();
+            connection.Close();
+        }
         public void AddBook(Book book)
         {
             SQLiteConnection connection;
@@ -30,6 +54,7 @@ namespace ConsoleApplicationSql
         }
         public Book SearchBook(string ISBN)
         {
+            Book book = new Book();
             SQLiteConnection connection;
             connection = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
             connection.Open();
@@ -40,15 +65,13 @@ namespace ConsoleApplicationSql
             SQLiteDataReader reader = selectCmd.ExecuteReader();
             while (reader.Read())
             {
-                Book book = new Book();
                 book.ISBN = reader.GetString(0);
                 book.Title = reader.GetString(1);
                 book.Author = reader.GetString(2);
                 book.Quantity = reader.GetInt32(3);
-                return book;
             }
             connection.Close();
-            return new Book();
+            return book;
         }
         public Book[] SearchBooks()
         {
